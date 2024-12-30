@@ -55,16 +55,16 @@ variable "networks" {
 
   default = {
     "network_1" = {
-      network_name    = "m05"
-      gateway         = "20.20.20.1"
-      domain          = "m004.lab.com"
-      dns_server_list = ["20.20.20.200", "20.20.20.1"]
+      network_name    = "VM Network"                          #Replace with VMWare Network
+      gateway         = "192.168.0.1"                   #Replace Gateway IP 
+      domain          = "Domain Name"                 #Replace with Domain Name
+      dns_server_list = ["20.20.20.200", "20.20.20.1"] #Replace with DNS Servers
     },
     "network_2" = {
-      network_name    = "n05"
-      gateway         = "30.30.30.1"
-      domain          = "n004.lab.com"
-      dns_server_list = ["30.30.30.200", "30.30.30.1"]
+      network_name    = "VM Netwrok 2"                          #Replace with VMWare Network
+      gateway         = "192.168.1.1"                   #Replace Gateway IP 
+      domain          = "Second Domain Name"                 #Replace with Domain Name
+      dns_server_list = ["30.30.30.200", "30.30.30.1"] #Replace with DNS Servers
     }
   }
 }

@@ -1,12 +1,8 @@
-[domains]
-20.20.20.200
-30.30.30.200
+[DC01]
+20.20.20.200  #Replace with DC01 IP address decared in terraform
 
-[m004]
-20.20.20.200
-
-[n004]
-30.30.30.200
+[DC02]
+30.30.30.200  #Replace with DC02 IP address decared in terraform
 
 
 
