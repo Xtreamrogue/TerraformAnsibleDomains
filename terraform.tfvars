@@ -1,0 +1,7 @@
+vsphere_user      = "administrator@vsphere.local"
+vsphere_password  = "Xtr3amr0gue123$"
+vsphere_server    = "60.60.60.253"
+admin_password    = "P@ssw0rd"
+datacenter        = "Lab"
+cluster           = "home"
+template          = "Win2022-Template-Base"
