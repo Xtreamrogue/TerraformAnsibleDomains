@@ -1,0 +1,173 @@
+- name: Open TCP port 1433 for SQL Server 
+  win_firewall_rule:
+    name: "SQL Server TCP 1433"
+    enable: yes
+    direction: in
+    localport: 1433
+    protocol: TCP
+    action: allow
+    profile: "Domain,Private,Public"
+
+- name: Open TCP port 4022 for SQL Server
+  win_firewall_rule:
+    name: "SQL Server TCP 4022"
+    enable: yes
+    direction: in
+    localport: 4022
+    protocol: TCP
+    action: allow
+    profile: "Domain,Private,Public"
+
+- name: Open UDP port 1434 for SQL Server Browser
+  win_firewall_rule:
+    name: "SQL Server UDP 1434"
+    enable: yes
+    direction: in
+    localport: 1434
+    protocol: UDP
+    action: allow
+    profile: "Domain,Private,Public"
+
+- name: Open TCP port 5022 for SQL Server Database Mirroring
+  win_firewall_rule:
+    name: "SQL Server TCP 5022"
+    enable: yes
+    direction: in
+    localport: 5022
+    protocol: TCP
+    action: allow
+    profile: "Domain,Private,Public"
+
+# MECM Ports
+- name: Open TCP port 80 for MECM client communication 
+  win_firewall_rule:
+    name: "MECM HTTP 80"
+    enable: yes
+    direction: in
+    localport: 80
+    protocol: TCP
+    action: allow
+    profile: "Domain,Private,Public"
+
+- name: Open TCP port 443 for MECM HTTPS communication
+  win_firewall_rule:
+    name: "MECM HTTPS 443"
+    enable: yes
+    direction: in
+    localport: 443
+    protocol: TCP
+    action: allow
+    profile: "Domain,Private,Public"
+
+- name: Open TCP port 10123 for MECM software distribution
+  win_firewall_rule:
+    name: "MECM Software Distribution 10123"
+    enable: yes
+    direction: in
+    localport: 10123
+    protocol: TCP
+    action: allow
+    profile: "Domain,Private,Public"
+
+- name: Open TCP port 2701 for MECM SMS provider
+  win_firewall_rule:
+    name: "MECM SMS Provider 2701"
+    enable: yes
+    direction: in
+    localport: 2701
+    protocol: TCP
+    action: allow
+    profile: "Domain,Private,Public"
+
+- name: Open TCP port 445 for SMB communication
+  win_firewall_rule:
+    name: "SMB 445"
+    enable: yes
+    direction: in
+    localport: 445
+    protocol: TCP
+    action: allow
+    profile: "Domain,Private,Public"
+
+# WMI Ports
+- name: Open TCP port 135 for RPC Endpoint Mapper
+  win_firewall_rule:
+    name: "WMI RPC Endpoint Mapper 135"
+    enable: yes
+    direction: in
+    localport: 135
+    protocol: TCP
+    action: allow
+    profile: "Domain,Private,Public"
+
+- name: Open TCP port 445 for WMI over SMB
+  win_firewall_rule:
+    name: "WMI SMB 445"
+    enable: yes
+    direction: in
+    localport: 445
+    protocol: TCP
+    action: allow
+    profile: "Domain,Private,Public"
+
+- name: Open UDP port 137 for NetBIOS Name Service
+  win_firewall_rule:
+    name: "WMI UDP 137"
+    enable: yes
+    direction: in
+    localport: 137
+    protocol: UDP
+    action: allow
+    profile: "Domain,Private,Public"
+
+- name: Open UDP port 138 for NetBIOS Datagram Service
+  win_firewall_rule:
+    name: "WMI UDP 138"
+    enable: yes
+    direction: in
+    localport: 138
+    protocol: UDP
+    action: allow
+    profile: "Domain,Private,Public"
+
+# File Sharing Ports
+- name: Open TCP port 445 for File Sharing (SMB)
+  win_firewall_rule:
+    name: "File Sharing SMB 445"
+    enable: yes
+    direction: in
+    localport: 445
+    protocol: TCP
+    action: allow
+    profile: "Domain,Private,Public"
+
+- name: Open UDP port 137 for NetBIOS Name Service (File Sharing)
+  win_firewall_rule:
+    name: "File Sharing UDP 137"
+    enable: yes
+    direction: in
+    localport: 137
+    protocol: UDP
+    action: allow
+    profile: "Domain,Private,Public"
+
+- name: Open UDP port 138 for NetBIOS Datagram Service (File Sharing)
+  win_firewall_rule:
+    name: "File Sharing UDP 138"
+    enable: yes
+    direction: in
+    localport: 138
+    protocol: UDP
+    action: allow
+    profile: "Domain,Private,Public"
+
+# RDP Ports
+- name: Open TCP port 3389 for RDP
+  win_firewall_rule:
+    name: "RDP 3389"
+    enable: yes
+    direction: in
+    localport: 3389
+    protocol: TCP
+    action: allow
+    profile: "Domain,Private,Public"

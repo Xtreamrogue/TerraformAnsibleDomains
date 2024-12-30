@@ -1,0 +1,12 @@
+- hosts: DC01
+  gather_facts: yes
+  roles:
+    - DC01
+    - openfirewall
+    
+
+- hosts: DC02
+  gather_facts: yes
+  roles:
+    - DC02
+    - openfirewall

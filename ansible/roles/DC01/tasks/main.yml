@@ -1,0 +1,146 @@
+- name: Install Active Directory Domain Services
+  win_feature:
+    name: AD-Domain-Services
+    state: present
+  register: ad_install
+  retries: 3
+  delay: 10
+  until: ad_install is succeeded
+
+
+- name: Promote to Domain Controller
+  win_shell: |
+    $password = ConvertTo-SecureString "{{ domain_admin_password }}" -AsPlainText -Force
+    Install-ADDSForest `
+      -DomainName "{{ domain_name }}" `
+      -CreateDnsDelegation:$false `
+      -DatabasePath "C:\Windows\NTDS" `
+      -DomainMode "WinThreshold" `
+      -DomainNetbiosName "{{ domain_netbios_name }}" `
+      -ForestMode "WinThreshold" `
+      -InstallDns:$true `
+      -LogPath "C:\Windows\NTDS" `
+      -NoRebootOnCompletion:$true `
+      -SysvolPath "C:\Windows\SYSVOL" `
+      -SafeModeAdministratorPassword $password `
+      -Force:$true
+  register: addomain
+  ignore_errors: yes
+
+- name: Reboot after AD DS installation
+  win_reboot:
+    msg: "Rebooting after AD DS installation"
+  when: addomain.failed == false and addomain.changed
+
+- name: Wait for the server to be ready after reboot
+  win_wait_for:
+    path: 'C:\Windows\system32\config\systemprofile'
+    state: present
+    delay: 120
+    timeout: 3000
+
+- name: Set upstream DNS server
+  win_dns_client:
+    adapter_names: '*'
+    ipv4_addresses:
+      - '{{ upstream_dns_1 }}'
+      - '{{ upstream_dns_2 }}'
+
+- name: Ensure Active Directory module is imported
+  win_shell: Import-Module ActiveDirectory
+
+- name: Create base OU '{{ root_ou }}'
+  win_shell: |
+    $ouPath = "OU={{ root_ou }},{{ domain_path }}"
+    if (-not (Get-ADOrganizationalUnit -Filter {Name -eq '{{ root_ou }}'})) {
+      New-ADOrganizationalUnit -Name "{{ root_ou }}" -Path "{{ domain_path }}"
+      Write-Host "Created OU: {{ root_ou }}"
+    } else {
+      Write-Host "OU: {{ root_ou }} already exists"
+    }
+  args:
+    executable: powershell
+
+- name: Create OUs under '{{ root_ou }}'
+  win_shell: |
+    $ouPath = "OU={{ root_ou }},{{ domain_path }}"
+    $subOUs = @("{{ sub_ous | join('","') }}")
+
+    foreach ($ou in $subOUs) {
+      if (-not (Get-ADOrganizationalUnit -Filter "Name -eq '$ou'" -SearchBase $ouPath)) {
+        New-ADOrganizationalUnit -Name $ou -Path $ouPath
+        Write-Host "Created OU: $ou"
+      } else {
+        Write-Host "OU: $ou already exists"
+      }
+    }
+  args:
+    executable: powershell
+
+- name: Create OUs under 'Workstations'
+  win_shell: |
+    $workstationsPath = "OU=Workstations,OU={{ root_ou }},{{ domain_path }}"
+    $workstationOUs = @("{{ workstation_ous | join('","') }}")
+
+    foreach ($ou in $workstationOUs) {
+      if (-not (Get-ADOrganizationalUnit -Filter "Name -eq '$ou'" -SearchBase $workstationsPath)) {
+        New-ADOrganizationalUnit -Name $ou -Path $workstationsPath
+        Write-Host "Created OU: $ou"
+      } else {
+        Write-Host "OU: $ou already exists"
+      }
+    }
+  args:
+    executable: powershell
+
+- name: Create Service Accounts
+  win_shell: |
+    $SecurePassword = ConvertTo-SecureString "{{ safe_mode_password }}" -AsPlainText -Force
+    $ouServiceAccounts = "OU=Service Accounts,OU={{ root_ou }},{{ domain_path }}"
+    $domainSuffix = "@{{ domain_name }}"
+
+    $serviceAccounts = @{
+        "CM_NAA" = "ConfigMgr Network Access Account";
+        "CM_SQL" = "ConfigMgr SQL Server Service Account";
+        "CM_SA" = "ConfigMgr SCCM Service Account";
+        "CM_CP" = "ConfigMgr Client Push Installation Account";
+        "CM_SRS" = "ConfigMgr Reporting Services Point Account";
+        "CM_CA" = "ConfigMgr System Management Container Account";
+        "la.admin" = "T1 Windows Account"
+    }
+
+    foreach ($accountName in $serviceAccounts.Keys) {
+        $description = $serviceAccounts[$accountName]
+        $userPrincipalName = $accountName + $domainSuffix
+        try {
+            New-ADUser -SamAccountName $accountName `
+                       -UserPrincipalName $userPrincipalName `
+                       -AccountPassword $SecurePassword `
+                       -Name $accountName `
+                       -Description $description `
+                       -Enabled $true `
+                       -Path $ouServiceAccounts
+            Write-Host "Created service account: $accountName in $ouServiceAccounts with UPN $userPrincipalName"
+        } catch {
+            Write-Host "Error creating service account ${accountName}: $($_.Exception.Message)"
+        }
+    }
+  args:
+    executable: powershell
+
+- name: Notify completion of service account creation
+  win_shell: Write-Host "Service account creation complete."
+  args:
+    executable: powershell
+    
+- name: Ensure the user is added to the Domain Admins group
+  microsoft.ad.user:
+    identity: "la.admin"
+    groups:
+      add:
+        - "Domain Admins"
+  register: add_user_result
+
+- name: Debug task to verify the result
+  debug:
+    var: add_user_result
